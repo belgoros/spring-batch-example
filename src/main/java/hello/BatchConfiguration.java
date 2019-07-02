@@ -1,5 +1,7 @@
 package hello;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -22,6 +24,7 @@ import javax.sql.DataSource;
 @Configuration
 @EnableBatchProcessing
 public class BatchConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(BatchConfiguration.class);
     @Autowired
     public JobBuilderFactory jobBuilderFactory;
 
@@ -31,6 +34,7 @@ public class BatchConfiguration {
     // tag::readerwriterprocessor[]
     @Bean
     public FlatFileItemReader<Person> reader() {
+        log.info("+++++++++++++ reader ++++++++++++++++");
         return new FlatFileItemReaderBuilder<Person>()
                 .name("personItemReader")
                 .resource(new ClassPathResource("sample_data.csv"))
@@ -49,6 +53,7 @@ public class BatchConfiguration {
 
     @Bean
     public JdbcBatchItemWriter<Person> writer(DataSource dataSource) {
+        log.info("+++++++++++++ writer+++++++++++++++");
         return new JdbcBatchItemWriterBuilder<Person>()
                 .itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
                 .sql("INSERT INTO people (first_name, last_name) VALUES (:firstName, :lastName)")
@@ -60,6 +65,7 @@ public class BatchConfiguration {
     // tag::jobstep[]
     @Bean
     public Job importUserJob(JobCompletionNotificationListener listener, Step step1) {
+        log.info("+++++++++++++ importUserJob +++++++++++++++");
         return jobBuilderFactory.get("importUserJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
@@ -70,6 +76,7 @@ public class BatchConfiguration {
 
     @Bean
     public Step step1(JdbcBatchItemWriter<Person> writer) {
+        log.info("+++++++++++++ step1 ++++++++++++++++++");
         return stepBuilderFactory.get("step1")
                 .<Person, Person> chunk(10)
                 .reader(reader())
