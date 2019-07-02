@@ -31,7 +31,6 @@ public class BatchConfiguration {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
-    // tag::readerwriterprocessor[]
     @Bean
     public FlatFileItemReader<Person> reader() {
         log.info("+++++++++++++ reader ++++++++++++++++");
@@ -60,9 +59,7 @@ public class BatchConfiguration {
                 .dataSource(dataSource)
                 .build();
     }
-    // end::readerwriterprocessor[]
 
-    // tag::jobstep[]
     @Bean
     public Job importUserJob(JobCompletionNotificationListener listener, Step step1) {
         log.info("+++++++++++++ importUserJob +++++++++++++++");
@@ -84,5 +81,4 @@ public class BatchConfiguration {
                 .writer(writer)
                 .build();
     }
-    // end::jobstep[]
 }
