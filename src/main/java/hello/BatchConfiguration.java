@@ -45,8 +45,6 @@ public class BatchConfiguration {
         return jsonReader;
     }
 
-
-
     private String buildUrl() {
         String apiUrl = "https://classic-json-api.herokuapp.com";
         String postsUrl = "posts";
@@ -60,7 +58,7 @@ public class BatchConfiguration {
     public ItemWriter<PostDto> itemWriter() {
         return items -> {
             for (PostDto item : items) {
-                System.out.println("item = " + item);
+                log.info("item = " + item);
             }
         };
     }
