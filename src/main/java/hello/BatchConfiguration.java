@@ -1,5 +1,6 @@
 package hello;
 
+import hello.dto.PostDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -7,19 +8,20 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
-import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.json.JacksonJsonObjectReader;
+import org.springframework.batch.item.json.JsonItemReader;
+import org.springframework.batch.item.json.builder.JsonItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
 
-import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.StringJoiner;
 
 @Configuration
 @EnableBatchProcessing
@@ -32,53 +34,67 @@ public class BatchConfiguration {
     public StepBuilderFactory stepBuilderFactory;
 
     @Bean
-    public FlatFileItemReader<Person> reader() {
-        log.info("+++++++++++++ reader ++++++++++++++++");
-        return new FlatFileItemReaderBuilder<Person>()
-                .name("personItemReader")
-                .resource(new ClassPathResource("sample_data.csv"))
-                .delimited()
-                .names(new String[]{"firstName", "lastName"})
-                .fieldSetMapper(new BeanWrapperFieldSetMapper<Person>() {{
-                    setTargetType(Person.class);
-                }})
+    public JsonItemReader<PostDto> itemReader() throws Exception {
+        final JsonItemReader<PostDto> jsonReader = new JsonItemReaderBuilder<PostDto>()
+                .name("postsReader")
+                .resource(new InputStreamResource(urlResource()))
+                .jsonObjectReader(new JacksonJsonObjectReader<>(PostDto.class))
+                .strict(false)
+                .build();
+
+        return jsonReader;
+    }
+
+
+
+    private String buildUrl() {
+        String apiUrl = "https://classic-json-api.herokuapp.com";
+        String postsUrl = "posts";
+        StringJoiner joiner = new StringJoiner("/");
+        joiner.add(apiUrl).add(postsUrl);
+
+        return joiner.toString();
+    }
+
+    @Bean
+    public ItemWriter<PostDto> itemWriter() {
+        return items -> {
+            for (PostDto item : items) {
+                System.out.println("item = " + item);
+            }
+        };
+    }
+
+    @Bean
+    public Job job() throws Exception {
+        return jobBuilderFactory.get("job")
+                .start(step())
                 .build();
     }
 
     @Bean
-    public PersonItemProcessor processor() {
-        return new PersonItemProcessor();
-    }
-
-    @Bean
-    public JdbcBatchItemWriter<Person> writer(DataSource dataSource) {
-        log.info("+++++++++++++ writer+++++++++++++++");
-        return new JdbcBatchItemWriterBuilder<Person>()
-                .itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
-                .sql("INSERT INTO people (first_name, last_name) VALUES (:firstName, :lastName)")
-                .dataSource(dataSource)
+    public Step step() throws Exception {
+        return stepBuilderFactory.get("step")
+                .<PostDto, PostDto>chunk(5)
+                .reader(itemReader())
+                .writer(itemWriter())
                 .build();
     }
 
-    @Bean
-    public Job importUserJob(JobCompletionNotificationListener listener, Step step1) {
-        log.info("+++++++++++++ importUserJob +++++++++++++++");
-        return jobBuilderFactory.get("importUserJob")
-                .incrementer(new RunIdIncrementer())
-                .listener(listener)
-                .flow(step1)
-                .end()
-                .build();
+    @Bean(destroyMethod = "close")
+    public InputStream urlResource() throws IOException {
+        URL url = new URL(buildUrl());
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        initConnection(con);
+
+        return con.getInputStream();
     }
 
-    @Bean
-    public Step step1(JdbcBatchItemWriter<Person> writer) {
-        log.info("+++++++++++++ step1 ++++++++++++++++++");
-        return stepBuilderFactory.get("step1")
-                .<Person, Person> chunk(10)
-                .reader(reader())
-                .processor(processor())
-                .writer(writer)
-                .build();
+    private void initConnection(HttpURLConnection con) throws IOException {
+        String apiToken = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE1NjIzMzU1Mjh9.vII5Bn8BL4CHHOWJHLCTF4idBlfg5X6OVPOxs4cu0qQ";
+        con.setRequestMethod("GET");
+        con.setRequestProperty("Content-Type", "application/json");
+        con.setRequestProperty("Authorization", apiToken);
+        con.connect();
     }
 }
