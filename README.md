@@ -11,8 +11,14 @@ Nothing new here:
 
 ### Run
 
-The app uses the in-memory `HSQL DB` database. So all the created data will be dropped after exits.
-The service reads `sample_data.csv` file, parses and extracts the data and inserts in the database. See the [guide](https://spring.io/guides/gs/batch-processing/) for a more detailed step-by-step explanation.
+The app makes a request to a Rails API hosted at [Heroku](https://classic-json-api.herokuapp.com).
+All the end-points of API are protected and a token is required to get access.
+You can get the access token by running:
+```
+curl -H "Content-Type: application/json" -X POST -d '{"email":"example@mail.com","password":"12345"}' https://classic-json-api.herokuapp.com/authenticate
+```
+
+The Rails API code source can be found [here](https://github.com/belgoros/classic-json-api).
 
 You can run the batch service either from your terminal:
 ```
@@ -21,17 +27,17 @@ java -jar target/spring-batch-example-1.0-SNAPSHOT.jar
 
 or from your preferred IDE by choosing the available `spring-boot` plugin `run` task.
 
-The job prints out a line for each person that gets transformed. After the job runs, you can also see the output from querying the database.
+The job prints out a line for each fetched Post.
 ```
-Converting (firstName: Jill, lastName: Doe) into (firstName: JILL, lastName: DOE)
-Converting (firstName: Joe, lastName: Doe) into (firstName: JOE, lastName: DOE)
-Converting (firstName: Justin, lastName: Doe) into (firstName: JUSTIN, lastName: DOE)
-Converting (firstName: Jane, lastName: Doe) into (firstName: JANE, lastName: DOE)
-Converting (firstName: John, lastName: Doe) into (firstName: JOHN, lastName: DOE)
-Found <firstName: JILL, lastName: DOE> in the database.
-Found <firstName: JOE, lastName: DOE> in the database.
-Found <firstName: JUSTIN, lastName: DOE> in the database.
-Found <firstName: JANE, lastName: DOE> in the database.
-Found <firstName: JOHN, lastName: DOE> in the database.
+item = PostDto(title=title-0, body=body-0)
+item = PostDto(title=title-1, body=body-1)
+item = PostDto(title=title-2, body=body-2)
+item = PostDto(title=title-3, body=body-3)
+item = PostDto(title=title-4, body=body-4)
+item = PostDto(title=title-5, body=body-5)
+item = PostDto(title=title-6, body=body-6)
+item = PostDto(title=title-7, body=body-7)
+item = PostDto(title=title-8, body=body-8)
+item = PostDto(title=title-9, body=body-9)
 ```
 
