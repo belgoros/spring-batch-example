@@ -1,6 +1,8 @@
 package hello;
 
 import hello.dto.PostDto;
+import org.javalite.http.Get;
+import org.javalite.http.Http;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -22,6 +24,9 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+
 @Configuration
 @EnableBatchProcessing
 public class BatchConfiguration {
@@ -40,14 +45,13 @@ public class BatchConfiguration {
 
     @Bean
     public JsonItemReader<PostDto> itemReader() throws Exception {
-        final JsonItemReader<PostDto> jsonReader = new JsonItemReaderBuilder<PostDto>()
+
+        return new JsonItemReaderBuilder<PostDto>()
                 .name("postsReader")
                 .resource(new InputStreamResource(urlResource()))
                 .jsonObjectReader(new JacksonJsonObjectReader<>(PostDto.class))
                 .strict(false)
                 .build();
-
-        return jsonReader;
     }
 
     @Bean
@@ -77,17 +81,10 @@ public class BatchConfiguration {
 
     @Bean(destroyMethod = "close")
     public InputStream urlResource() throws IOException {
-        URL url = new URL(appConfiguration.getPostsUrl());
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        initConnection(con);
+        Get get = Http.get(appConfiguration.getPostsUrl())
+                .header(CONTENT_TYPE, "application/json")
+                .header(AUTHORIZATION, authenticator.token());
 
-        return con.getInputStream();
-    }
-
-    private void initConnection(HttpURLConnection con) throws IOException {
-        con.setRequestMethod("GET");
-        con.setRequestProperty("Content-Type", "application/json");
-        con.setRequestProperty("Authorization", authenticator.token());
-        con.connect();
+        return get.getInputStream();
     }
 }
