@@ -1,0 +1,5 @@
+host: https://classic-json-api.herokuapp.com
+authentication-url: ${host}/authenticate
+posts-url: ${host}/posts
+email: example@mail.com
+password: 12345

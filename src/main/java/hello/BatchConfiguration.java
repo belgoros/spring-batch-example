@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.StringJoiner;
 
 @Configuration
 @EnableBatchProcessing
@@ -33,6 +32,12 @@ public class BatchConfiguration {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
+    @Autowired
+    public AppConfiguration appConfiguration;
+
+    @Autowired
+    public Authentication authenticator;
+
     @Bean
     public JsonItemReader<PostDto> itemReader() throws Exception {
         final JsonItemReader<PostDto> jsonReader = new JsonItemReaderBuilder<PostDto>()
@@ -43,15 +48,6 @@ public class BatchConfiguration {
                 .build();
 
         return jsonReader;
-    }
-
-    private String buildUrl() {
-        String apiUrl = "https://classic-json-api.herokuapp.com";
-        String postsUrl = "posts";
-        StringJoiner joiner = new StringJoiner("/");
-        joiner.add(apiUrl).add(postsUrl);
-
-        return joiner.toString();
     }
 
     @Bean
@@ -81,7 +77,7 @@ public class BatchConfiguration {
 
     @Bean(destroyMethod = "close")
     public InputStream urlResource() throws IOException {
-        URL url = new URL(buildUrl());
+        URL url = new URL(appConfiguration.getPostsUrl());
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         initConnection(con);
 
@@ -89,10 +85,9 @@ public class BatchConfiguration {
     }
 
     private void initConnection(HttpURLConnection con) throws IOException {
-        String apiToken = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE1NjIzMzU1Mjh9.vII5Bn8BL4CHHOWJHLCTF4idBlfg5X6OVPOxs4cu0qQ";
         con.setRequestMethod("GET");
         con.setRequestProperty("Content-Type", "application/json");
-        con.setRequestProperty("Authorization", apiToken);
+        con.setRequestProperty("Authorization", authenticator.token());
         con.connect();
     }
 }
