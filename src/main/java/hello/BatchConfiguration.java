@@ -21,8 +21,6 @@ import org.springframework.core.io.InputStreamResource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
@@ -41,7 +39,7 @@ public class BatchConfiguration {
     public AppConfiguration appConfiguration;
 
     @Autowired
-    public Authentication authenticator;
+    public Authentication authentication;
 
     @Bean
     public JsonItemReader<PostDto> itemReader() throws Exception {
@@ -83,7 +81,7 @@ public class BatchConfiguration {
     public InputStream urlResource() throws IOException {
         Get get = Http.get(appConfiguration.getPostsUrl())
                 .header(CONTENT_TYPE, "application/json")
-                .header(AUTHORIZATION, authenticator.token());
+                .header(AUTHORIZATION, authentication.token());
 
         return get.getInputStream();
     }
