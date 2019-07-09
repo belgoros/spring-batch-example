@@ -17,10 +17,6 @@ public class Authentication {
     @Autowired
     private AppConfiguration configuration;
 
-    public Authentication(AppConfiguration configuration) {
-        this.configuration = configuration;
-    }
-
     public String token() throws IOException {
         Post post = Http.post(configuration.getAuthenticationUrl())
                 .param("email", configuration.getEmail())
