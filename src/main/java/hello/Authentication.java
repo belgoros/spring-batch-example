@@ -12,6 +12,8 @@ import java.io.IOException;
 @Component
 public class Authentication {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     @Autowired
     private AppConfiguration configuration;
 
@@ -28,8 +30,7 @@ public class Authentication {
     }
 
     private String readToken(String response) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        final AuthenticatorDto authenticator = mapper.readValue(response, AuthenticatorDto.class);
+        final AuthenticatorDto authenticator = MAPPER.readValue(response, AuthenticatorDto.class);
 
         return  authenticator.getToken();
     }
