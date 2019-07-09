@@ -12,7 +12,7 @@ Nothing new here:
 ### Run
 
 The app makes a request to a Rails API hosted at [Heroku](https://classic-json-api.herokuapp.com) free dyno.
-That's why in some cases the first call can fail, - Heroku stops free dynis after 30 minutes of no activity, and a new start can take some time.
+That's why in some cases the first call can fail, - Heroku stops free dynos after 30 minutes of no activity, and a new start can take some time.
 
 All the end-points of API are protected and a token is required to get access.
 
