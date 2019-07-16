@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +28,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @Configuration
 @EnableBatchProcessing
+@EnableScheduling
 public class BatchConfiguration {
     private static final Logger log = LoggerFactory.getLogger(BatchConfiguration.class);
     @Autowired
