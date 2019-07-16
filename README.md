@@ -45,4 +45,5 @@ item = PostDto(title=title-7, body=body-7)
 item = PostDto(title=title-8, body=body-8)
 item = PostDto(title=title-9, body=body-9)
 ```
+Actually, the `writer()` method writes to the console the same object as the reader gets (`PostDto`), but it an be changed by implementing another model class representing a real DB entity.
 
